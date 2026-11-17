@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ADV Mission Control - AA HUD</title>
+    <title>ADV Mission Control - SideNav HUD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&family=JetBrains+Mono:wght@600;800&display=swap" rel="stylesheet">
@@ -24,139 +24,124 @@
         .glow-orange { text-shadow: 0 0 12px rgba(255, 107, 0, 0.6); }
     </style>
 </head>
-<body class="flex flex-col bg-slate-950 text-slate-100 p-1 box-border">
+<body class="flex flex-row bg-slate-950 text-slate-100 p-1.5 gap-1.5 box-border h-screen w-screen overflow-hidden">
 
-    <!-- COMPACT TOP STATUS BAR -->
-    <header class="bg-slate-900 border border-slate-800 rounded px-2 py-1 flex justify-between items-center mb-1 shrink-0">
-        <div class="flex items-center space-x-1.5">
-            <div id="gps-status-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-            <span id="gps-text" class="text-[10px] font-bold uppercase text-slate-400">SEARCHING</span>
-            <span class="text-[10px] text-slate-500">ACC:<span id="gps-acc" class="text-slate-300">--</span>m</span>
+    <!-- LEFT SIDEBAR (1/6 Width): All Navigation & Action Buttons -->
+    <aside class="w-1/6 flex flex-col justify-between gap-1 shrink-0 bg-slate-900 border border-slate-800 rounded p-1">
+        <div class="flex flex-col gap-1">
+            <div class="text-[9px] font-bold text-slate-500 text-center uppercase tracking-wider mb-0.5">Views</div>
+            <button onclick="setTab('avg')" id="t-avg" class="py-2.5 px-1 rounded font-display font-bold text-[11px] bg-brand-cyan text-slate-950 transition flex flex-col items-center justify-center text-center leading-tight">
+                <i class="fa-solid fa-gauge-high text-sm mb-0.5"></i><span>AVGS</span>
+            </button>
+            <button onclick="setTab('splits')" id="t-splits" class="py-2.5 px-1 rounded font-display font-bold text-[11px] bg-slate-950 text-slate-300 border border-slate-800 transition flex flex-col items-center justify-center text-center leading-tight">
+                <i class="fa-solid fa-stopwatch text-sm mb-0.5"></i><span>SPLITS</span>
+            </button>
+            <button onclick="setTab('alt')" id="t-alt" class="py-2.5 px-1 rounded font-display font-bold text-[11px] bg-slate-950 text-slate-300 border border-slate-800 transition flex flex-col items-center justify-center text-center leading-tight">
+                <i class="fa-solid fa-mountain text-sm mb-0.5"></i><span>ALT</span>
+            </button>
         </div>
-        <div class="flex items-center space-x-1 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-[10px]">
-            <i class="fa-solid fa-compass text-brand-cyan"></i>
-            <span id="header-hdg" class="font-bold text-brand-cyan">--° (---)</span>
-        </div>
-        <div class="flex items-center space-x-1.5 text-[10px]">
-            <span class="text-slate-300"><i class="fa-solid fa-battery-half text-amber-400 mr-0.5"></i><span id="batt-lvl">--%</span></span>
-            <button onclick="openHistory()" title="History" class="bg-slate-800 text-brand-orange px-2 py-0.5 rounded border border-slate-700 font-bold"><i class="fa-solid fa-folder-open"></i></button>
-            <button onclick="toggleFS()" title="Fullscreen" class="bg-slate-800 text-brand-cyan px-2 py-0.5 rounded border border-slate-700 font-bold"><i class="fa-solid fa-expand"></i></button>
-        </div>
-    </header>
 
-    <!-- COMPACT GLOVE TAB BAR -->
-    <nav class="grid grid-cols-3 gap-1 mb-1 shrink-0">
-        <button onclick="setTab('avg')" id="t-avg" class="py-1.5 px-2 rounded font-display font-bold text-xs bg-brand-cyan text-slate-950 transition flex items-center justify-center space-x-1">
-            <i class="fa-solid fa-gauge-high"></i><span>AVERAGES</span>
-        </button>
-        <button onclick="setTab('splits')" id="t-splits" class="py-1.5 px-2 rounded font-display font-bold text-xs bg-slate-900 text-slate-300 border border-slate-800 transition flex items-center justify-center space-x-1">
-            <i class="fa-solid fa-stopwatch"></i><span>SPLITS & TIME</span>
-        </button>
-        <button onclick="setTab('alt')" id="t-alt" class="py-1.5 px-2 rounded font-display font-bold text-xs bg-slate-900 text-slate-300 border border-slate-800 transition flex items-center justify-center space-x-1">
-            <i class="fa-solid fa-mountain"></i><span>ALTITUDE</span>
-        </button>
-    </nav>
+        <div class="flex flex-col gap-1 border-t border-slate-800 pt-1">
+            <button onclick="saveTrip()" class="bg-brand-orange text-slate-950 font-display font-bold text-[10px] py-2 px-0.5 rounded shadow flex flex-col items-center justify-center text-center leading-tight">
+                <i class="fa-solid fa-floppy-disk text-xs mb-0.5"></i><span>SAVE</span>
+            </button>
+            <button onclick="togglePause()" id="btn-pause" class="bg-slate-950 text-slate-200 border border-slate-800 font-bold text-[10px] py-2 px-0.5 rounded flex flex-col items-center justify-center text-center leading-tight">
+                <i id="pause-ico" class="fa-solid fa-pause text-amber-400 text-xs mb-0.5"></i><span id="pause-lbl">PAUSE</span>
+            </button>
+            <button onclick="exportGPX()" class="bg-slate-950 text-brand-cyan border border-slate-800 font-bold text-[10px] py-2 px-0.5 rounded flex flex-col items-center justify-center text-center leading-tight">
+                <i class="fa-solid fa-file-export text-xs mb-0.5"></i><span>GPX</span>
+            </button>
+        </div>
+    </aside>
 
-    <!-- MAIN VIEWPORT PANEL -->
-    <main class="flex-1 min-h-0 flex flex-col overflow-hidden bg-slate-900/60 border border-slate-800 rounded p-1.5 mb-1">
+    <!-- RIGHT CONTENT AREA (5/6 Width): Status Top Bar + Quadrant Display -->
+    <div class="w-5/6 flex flex-col gap-1.5 min-w-0 h-full">
         
-        <!-- TAB 1: AVERAGES -->
-        <section id="pane-avg" class="flex-1 min-h-0 flex flex-col justify-between gap-1">
-            <div class="flex justify-between items-center text-[10px] text-slate-400 uppercase font-bold px-1 shrink-0">
-                <span><i class="fa-solid fa-gauge text-brand-cyan mr-1"></i> Speed Metrics</span>
-                <span>MAX: <strong id="val-max" class="text-brand-orange text-xs">0.0</strong> km/h</span>
+        <!-- TOP STATUS BAR -->
+        <header class="bg-slate-900 border border-slate-800 rounded px-2.5 py-1 flex justify-between items-center shrink-0">
+            <div class="flex items-center space-x-2">
+                <div id="gps-status-dot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                <span id="gps-text" class="text-[10px] font-bold uppercase text-slate-400">SEARCHING</span>
+                <span class="text-[10px] text-slate-500">| ACC: <span id="gps-acc" class="text-slate-300">--</span>m</span>
             </div>
+            <div class="flex items-center space-x-1 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-[11px]">
+                <i class="fa-solid fa-compass text-brand-cyan"></i>
+                <span id="header-hdg" class="font-bold text-brand-cyan">--°</span>
+            </div>
+            <div class="flex items-center space-x-2 text-[11px]">
+                <span class="text-slate-300"><i class="fa-solid fa-battery-half text-amber-400 mr-1"></i><span id="batt-lvl">--%</span></span>
+                <button onclick="openHistory()" title="History" class="bg-slate-800 text-brand-orange px-2 py-0.5 rounded border border-slate-700 font-bold"><i class="fa-solid fa-folder-open"></i></button>
+                <button onclick="toggleFS()" title="Fullscreen" class="bg-slate-800 text-brand-cyan px-2 py-0.5 rounded border border-slate-700 font-bold"><i class="fa-solid fa-expand"></i></button>
+            </div>
+        </header>
 
-            <div class="grid grid-cols-2 gap-1.5 flex-1 min-h-0">
-                <div class="bg-slate-950 rounded border border-slate-800 flex flex-col items-center justify-center p-1">
-                    <div class="text-[9px] text-slate-400 uppercase font-bold">Moving Average</div>
-                    <div class="text-3xl sm:text-4xl font-display font-extrabold text-brand-cyan glow-cyan leading-none my-0.5"><span id="val-mov-avg">0.0</span></div>
+        <!-- QUADRANT DATA CONTAINER (5/6 Screen) -->
+        <main class="flex-1 min-h-0 relative flex flex-col bg-slate-900/60 border border-slate-800 rounded p-1.5">
+            
+            <!-- TAB 1: AVERAGES (2x2 Quadrants) -->
+            <section id="pane-avg" class="flex-1 grid grid-cols-2 grid-rows-2 gap-1.5 h-full">
+                <div class="bg-slate-950 rounded border border-slate-800 flex flex-col items-center justify-center p-1 text-center">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold">Moving Average</div>
+                    <div class="text-4xl font-display font-extrabold text-brand-cyan glow-cyan my-1"><span id="val-mov-avg">0.0</span></div>
+                    <span class="text-[9px] text-slate-500">km/h (MAX: <span id="val-max" class="text-brand-orange">0.0</span>)</span>
+                </div>
+                <div class="bg-slate-950 rounded border border-slate-800 flex flex-col items-center justify-center p-1 text-center">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold">Overall Average</div>
+                    <div class="text-4xl font-display font-extrabold text-slate-100 my-1"><span id="val-ovr-avg">0.0</span></div>
                     <span class="text-[9px] text-slate-500">km/h</span>
                 </div>
-                <div class="bg-slate-950 rounded border border-slate-800 flex flex-col items-center justify-center p-1">
-                    <div class="text-[9px] text-slate-400 uppercase font-bold">Overall Average</div>
-                    <div class="text-3xl sm:text-4xl font-display font-extrabold text-slate-100 leading-none my-0.5"><span id="val-ovr-avg">0.0</span></div>
-                    <span class="text-[9px] text-slate-500">km/h</span>
+                <div class="bg-slate-950 rounded border border-slate-800 flex flex-col items-center justify-center p-1 text-center">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold">Total Distance</div>
+                    <div class="text-3xl font-display font-extrabold text-slate-100 my-1"><span id="val-dist">0.00</span></div>
+                    <span class="text-[9px] text-slate-500">kilometers</span>
                 </div>
-            </div>
+                <div class="bg-slate-950 rounded border border-slate-800 flex flex-col items-center justify-center p-1 text-center">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold">Moving Time</div>
+                    <div class="text-3xl font-display font-extrabold text-brand-green my-1" id="val-time">00:00:00</div>
+                    <span class="text-[9px] text-slate-500">active time</span>
+                </div>
+            </section>
 
-            <div class="grid grid-cols-2 gap-1.5 text-center shrink-0">
-                <div class="bg-slate-950 py-1 px-2 rounded border border-slate-800 flex justify-between items-center">
-                    <span class="text-[9px] text-slate-400 uppercase font-bold">Total Dist</span>
-                    <span class="text-xs font-bold text-slate-100"><span id="val-dist">0.00</span> <span class="text-[9px] text-slate-500">km</span></span>
-                </div>
-                <div class="bg-slate-950 py-1 px-2 rounded border border-slate-800 flex justify-between items-center">
-                    <span class="text-[9px] text-slate-400 uppercase font-bold">Moving Time</span>
-                    <span id="val-time" class="text-xs font-bold text-brand-green">00:00:00</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 2: SPLITS & TIME -->
-        <section id="pane-splits" class="flex-1 min-h-0 flex flex-col justify-between gap-1 hidden">
-            <div class="text-[10px] text-slate-400 uppercase font-bold px-1 shrink-0"><i class="fa-solid fa-stopwatch text-brand-orange mr-1"></i> Rolling Split Paces</div>
-            <div class="grid grid-cols-3 gap-1.5 flex-1 min-h-0">
-                <div class="bg-slate-950 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden p-1">
+            <!-- TAB 2: SPLITS (3 Columns / Quads) -->
+            <section id="pane-splits" class="flex-1 grid grid-cols-3 gap-1.5 h-full hidden">
+                <div class="bg-slate-950 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden p-1 text-center">
                     <div class="absolute top-0 left-0 h-1 bg-slate-800 w-full"><div id="bar-1km" class="h-full bg-brand-cyan w-0"></div></div>
-                    <div class="text-[10px] text-slate-400 font-bold">LAST 1 KM</div>
-                    <div id="pace-1" class="text-2xl font-display font-bold text-brand-cyan my-0.5">--:--</div>
-                    <div class="text-[9px] text-slate-500">min/km</div>
+                    <div class="text-[10px] text-slate-400 font-bold mt-1">LAST 1 KM</div>
+                    <div id="pace-1" class="text-3xl font-display font-bold text-brand-cyan my-2">--:--</div>
+                    <span class="text-[9px] text-slate-500">min/km</span>
                 </div>
-                <div class="bg-slate-950 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden p-1">
+                <div class="bg-slate-950 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden p-1 text-center">
                     <div class="absolute top-0 left-0 h-1 bg-slate-800 w-full"><div id="bar-5km" class="h-full bg-brand-orange w-0"></div></div>
-                    <div class="text-[10px] text-slate-400 font-bold">LAST 5 KM</div>
-                    <div id="pace-5" class="text-2xl font-display font-bold text-brand-orange my-0.5">--:--</div>
-                    <div class="text-[9px] text-slate-500">min/km</div>
+                    <div class="text-[10px] text-slate-400 font-bold mt-1">LAST 5 KM</div>
+                    <div id="pace-5" class="text-3xl font-display font-bold text-brand-orange my-2">--:--</div>
+                    <span class="text-[9px] text-slate-500">min/km</span>
                 </div>
-                <div class="bg-slate-950 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden p-1">
+                <div class="bg-slate-950 rounded border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden p-1 text-center">
                     <div class="absolute top-0 left-0 h-1 bg-slate-800 w-full"><div id="bar-10km" class="h-full bg-brand-green w-0"></div></div>
-                    <div class="text-[10px] text-slate-400 font-bold">LAST 10 KM</div>
-                    <div id="pace-10" class="text-2xl font-display font-bold text-brand-green my-0.5">--:--</div>
-                    <div class="text-[9px] text-slate-500">min/km</div>
+                    <div class="text-[10px] text-slate-400 font-bold mt-1">LAST 10 KM</div>
+                    <div id="pace-10" class="text-3xl font-display font-bold text-brand-green my-2">--:--</div>
+                    <span class="text-[9px] text-slate-500">min/km</span>
                 </div>
-            </div>
-            <div class="grid grid-cols-2 gap-1.5 text-center shrink-0">
-                <div class="bg-slate-950 py-1 px-2 rounded border border-slate-800 flex justify-between items-center">
-                    <span class="text-[9px] text-slate-400 uppercase font-bold">Moving</span>
-                    <span id="val-mov-time-2" class="text-xs font-bold text-brand-green">00:00:00</span>
+            </section>
+
+            <!-- TAB 3: ALTITUDE -->
+            <section id="pane-alt" class="flex-1 flex flex-col justify-between h-full hidden">
+                <div class="flex justify-between items-center text-[10px] text-slate-400 uppercase font-bold px-1 shrink-0">
+                    <span><i class="fa-solid fa-mountain text-brand-orange mr-1"></i> Elevation Profile</span>
+                    <span>CURR: <strong id="val-alt" class="text-brand-orange text-xs">0</strong>m | GAIN: <strong id="val-gain" class="text-brand-green text-xs">0</strong>m</span>
                 </div>
-                <div class="bg-slate-950 py-1 px-2 rounded border border-slate-800 flex justify-between items-center">
-                    <span class="text-[9px] text-slate-400 uppercase font-bold">Stationary</span>
-                    <span id="val-idle-time" class="text-xs font-bold text-amber-400">00:00:00</span>
+                <div class="relative flex-1 min-h-0 w-full bg-slate-950 border border-slate-800 rounded overflow-hidden my-1">
+                    <canvas id="alt-canvas" class="w-full h-full block"></canvas>
+                    <div id="alt-empty" class="absolute inset-0 flex items-center justify-center text-slate-600 text-[10px]">Awaiting elevation data...</div>
                 </div>
-            </div>
-        </section>
+                <div class="flex justify-between text-[10px] text-slate-400 px-1 shrink-0">
+                    <span id="alt-samples">Samples: 0</span>
+                    <span>MIN: <strong id="val-min-alt" class="text-slate-200">0</strong>m | MAX: <strong id="val-max-alt" class="text-slate-200">0</strong>m</span>
+                </div>
+            </section>
 
-        <!-- TAB 3: ALTITUDE -->
-        <section id="pane-alt" class="flex-1 min-h-0 flex flex-col justify-between gap-1 hidden">
-            <div class="flex justify-between items-center text-[10px] text-slate-400 uppercase font-bold px-1 shrink-0">
-                <span><i class="fa-solid fa-mountain text-brand-orange mr-1"></i> Elevation Profile</span>
-                <span>CURR: <strong id="val-alt" class="text-brand-orange text-xs">0</strong>m | GAIN: <strong id="val-gain" class="text-brand-green text-xs">0</strong>m</span>
-            </div>
-            <div class="relative flex-1 min-h-0 w-full bg-slate-950 border border-slate-800 rounded overflow-hidden">
-                <canvas id="alt-canvas" class="w-full h-full block"></canvas>
-                <div id="alt-empty" class="absolute inset-0 flex items-center justify-center text-slate-600 text-[10px]">Awaiting elevation data...</div>
-            </div>
-            <div class="flex justify-between text-[10px] text-slate-400 px-1 shrink-0">
-                <span id="alt-samples">Samples: 0</span>
-                <span>MIN: <strong id="val-min-alt" class="text-slate-200">0</strong>m | MAX: <strong id="val-max-alt" class="text-slate-200">0</strong>m</span>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- COMPACT ACTION FOOTER -->
-    <footer class="grid grid-cols-3 gap-1 shrink-0">
-        <button onclick="saveTrip()" class="bg-gradient-to-r from-brand-orange to-amber-600 text-slate-950 font-display font-extrabold text-xs py-1.5 px-1 rounded shadow flex items-center justify-center space-x-1">
-            <i class="fa-solid fa-floppy-disk"></i><span>SAVE & NEW</span>
-        </button>
-        <button onclick="togglePause()" id="btn-pause" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs py-1.5 px-1 rounded flex items-center justify-center space-x-1">
-            <i id="pause-ico" class="fa-solid fa-pause text-amber-400"></i><span id="pause-lbl">PAUSE</span>
-        </button>
-        <button onclick="exportGPX()" class="bg-slate-800 hover:bg-slate-700 text-brand-cyan border border-slate-700 font-bold text-xs py-1.5 px-1 rounded flex items-center justify-center space-x-1">
-            <i class="fa-solid fa-file-export"></i><span>EXPORT GPX</span>
-        </button>
-    </footer>
+        </main>
+    </div>
 
     <!-- HISTORY MODAL -->
     <div id="modal-hist" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-2 hidden">
@@ -174,7 +159,7 @@
     </div>
 
     <!-- TOAST -->
-    <div id="toast" class="fixed bottom-10 right-3 bg-brand-cyan text-slate-950 font-bold text-xs px-3 py-1.5 rounded shadow-lg z-50 transform translate-y-16 opacity-0 transition-all duration-300">Notification</div>
+    <div id="toast" class="fixed bottom-6 right-3 bg-brand-cyan text-slate-950 font-bold text-xs px-3 py-1.5 rounded shadow-lg z-50 transform translate-y-16 opacity-0 transition-all duration-300">Notification</div>
 
     <script>
         const state = {
@@ -183,21 +168,18 @@
         };
 
         function toggleFS() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            } else {
-                document.exitFullscreen().catch(() => {});
-            }
+            if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => {}); }
+            else { document.exitFullscreen().catch(() => {}); }
         }
 
         function setTab(name) {
             ['avg', 'splits', 'alt'].forEach(t => {
                 document.getElementById(`pane-${t}`).classList.add('hidden');
-                document.getElementById(`t-${t}`).className = "py-1.5 px-2 rounded font-display font-bold text-xs bg-slate-900 text-slate-300 border border-slate-800 transition flex items-center justify-center space-x-1";
+                document.getElementById(`t-${t}`).className = "py-2.5 px-1 rounded font-display font-bold text-[11px] bg-slate-950 text-slate-300 border border-slate-800 transition flex flex-col items-center justify-center text-center leading-tight";
             });
             document.getElementById(`pane-${name}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`t-${name}`);
-            activeBtn.className = "py-1.5 px-2 rounded font-display font-bold text-xs bg-brand-cyan text-slate-950 transition flex items-center justify-center space-x-1";
+            activeBtn.className = "py-2.5 px-1 rounded font-display font-bold text-[11px] bg-brand-cyan text-slate-950 transition flex flex-col items-center justify-center text-center leading-tight";
             if(name === 'alt') resizeCanvas();
         }
 
@@ -228,8 +210,8 @@
             navigator.geolocation.watchPosition(pos => {
                 if(state.isPaused) return;
                 const c = pos.coords;
-                document.getElementById('gps-status-dot').className = "w-2 h-2 rounded-full bg-brand-green shadow-[0_0_8px_#00ff66]";
-                document.getElementById('gps-text').textContent = "GPS LOCKED";
+                document.getElementById('gps-status-dot').className = "w-2.5 h-2.5 rounded-full bg-brand-green shadow-[0_0_8px_#00ff66]";
+                document.getElementById('gps-text').textContent = "LOCKED";
                 document.getElementById('gps-acc').textContent = Math.round(c.accuracy);
                 if(c.heading !== null && !isNaN(c.heading)) {
                     document.getElementById('header-hdg').textContent = `${Math.round(c.heading)}° (${getHeadingCardinal(c.heading)})`;
@@ -256,7 +238,7 @@
                 state.lastPos = {lat: c.latitude, lon: c.longitude};
                 state.trackPts.push({lat: c.latitude, lon: c.longitude, ele: state.currAlt, time: pos.timestamp || Date.now()});
             }, () => {
-                document.getElementById('gps-status-dot').className = "w-2 h-2 rounded-full bg-red-500 animate-pulse";
+                document.getElementById('gps-status-dot').className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
                 document.getElementById('gps-text').textContent = "SEARCHING";
             }, {enableHighAccuracy: true, maximumAge: 0});
         }
@@ -280,8 +262,6 @@
             document.getElementById('val-ovr-avg').textContent = (totH > 0 ? state.dist/totH : 0).toFixed(1);
             document.getElementById('val-dist').textContent = state.dist.toFixed(2);
             document.getElementById('val-time').textContent = fmtTime(state.movTime);
-            document.getElementById('val-mov-time-2').textContent = fmtTime(state.movTime);
-            document.getElementById('val-idle-time').textContent = fmtTime(state.idleTime);
 
             document.getElementById('val-alt').textContent = state.currAlt;
             document.getElementById('val-gain').textContent = state.altGain;
@@ -321,13 +301,16 @@
 
         function resizeCanvas() {
             const cvs = document.getElementById('alt-canvas');
-            cvs.width = cvs.parentElement.clientWidth;
-            cvs.height = cvs.parentElement.clientHeight;
-            renderGraph();
+            if(cvs && cvs.parentElement) {
+                cvs.width = cvs.parentElement.clientWidth;
+                cvs.height = cvs.parentElement.clientHeight;
+                renderGraph();
+            }
         }
 
         function renderGraph() {
             const cvs = document.getElementById('alt-canvas'), ctx = cvs.getContext('2d');
+            if(!cvs) return;
             ctx.clearRect(0, 0, cvs.width, cvs.height);
             if(state.altHist.length < 2) { document.getElementById('alt-empty').classList.remove('hidden'); return; }
             document.getElementById('alt-empty').classList.add('hidden');
@@ -345,7 +328,7 @@
 
         function togglePause() {
             state.isPaused = !state.isPaused;
-            document.getElementById('pause-ico').className = state.isPaused ? "fa-solid fa-play text-brand-green" : "fa-solid fa-pause text-amber-400";
+            document.getElementById('pause-ico').className = state.isPaused ? "fa-solid fa-play text-brand-green text-xs mb-0.5" : "fa-solid fa-pause text-amber-400 text-xs mb-0.5";
             document.getElementById('pause-lbl').textContent = state.isPaused ? "RESUME" : "PAUSE";
             showToast(state.isPaused ? "Paused" : "Resumed");
         }
