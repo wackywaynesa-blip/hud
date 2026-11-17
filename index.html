@@ -1,527 +1,277 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950 text-slate-100 dark">
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ADV Mission Control - HUD</title>
-    <!-- Tailwind CSS CDN -->
+    <title>ADV Mission Control - AA HUD</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;1,700&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&family=JetBrains+Mono:wght@600;800&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        brand: { cyan: '#00f0ff', orange: '#ff6b00', green: '#00ff66', red: '#ff0055', card: '#0f172a' }
-                    },
-                    fontFamily: {
-                        mono: ['"JetBrains Mono"', 'monospace'],
-                        display: ['"Chakra Petch"', 'sans-serif']
-                    }
+                    colors: { brand: { cyan: '#00f0ff', orange: '#ff6b00', green: '#00ff66' } },
+                    fontFamily: { mono: ['"JetBrains Mono"', 'monospace'], display: ['"Chakra Petch"', 'sans-serif'] }
                 }
             }
         }
     </script>
     <style>
         body { font-family: 'JetBrains Mono', monospace; touch-action: manipulation; user-select: none; }
-        .glow-cyan { text-shadow: 0 0 16px rgba(0, 240, 255, 0.6); }
-        .glow-orange { text-shadow: 0 0 16px rgba(255, 107, 0, 0.6); }
-        .glow-green { text-shadow: 0 0 16px rgba(0, 255, 102, 0.6); }
-        .box-glow { box-shadow: 0 0 25px -5px rgba(0, 240, 255, 0.2); }
-        .box-glow-orange { box-shadow: 0 0 25px -5px rgba(255, 107, 0, 0.25); }
+        .glow-cyan { text-shadow: 0 0 12px rgba(0, 240, 255, 0.6); }
+        .glow-orange { text-shadow: 0 0 12px rgba(255, 107, 0, 0.6); }
     </style>
 </head>
-<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none">
+<body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden p-1.5 box-border">
 
-    <!-- TOP HEADER / STATUS BAR -->
-    <header class="bg-slate-900 border-b border-slate-800 px-3 py-2 flex justify-between items-center z-20 shrink-0">
+    <!-- COMPACT CAR TOP BAR -->
+    <header class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 flex justify-between items-center mb-1.5 shrink-0">
         <div class="flex items-center space-x-2">
-            <div class="flex items-center space-x-1.5 bg-slate-950 px-2 py-1 rounded border border-slate-800">
-                <div id="gps-status-dot" class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
-                <span id="gps-status-text" class="text-[11px] font-bold uppercase text-slate-400">GPS SEARCH</span>
-            </div>
-            <span class="text-[11px] font-mono text-slate-500">ACC: <span id="gps-accuracy" class="text-slate-300">--</span>m</span>
+            <div id="gps-status-dot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+            <span id="gps-text" class="text-[10px] font-bold uppercase text-slate-400">SEARCHING</span>
+            <span class="text-[10px] text-slate-500">| ACC: <span id="gps-acc" class="text-slate-300">--</span>m</span>
         </div>
-
-        <div class="flex items-center space-x-1.5 bg-slate-950 px-2 py-1 rounded border border-slate-800">
-            <i class="fa-solid fa-compass text-brand-cyan text-xs"></i>
-            <span id="header-heading" class="text-xs font-bold text-brand-cyan">--° (---)</span>
+        <div class="flex items-center space-x-1 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-[11px]">
+            <i class="fa-solid fa-compass text-brand-cyan"></i>
+            <span id="header-hdg" class="font-bold text-brand-cyan">--°</span>
         </div>
-
-        <div class="flex items-center space-x-2">
-            <div class="flex items-center space-x-1.5 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
-                <i id="battery-icon" class="fa-solid fa-battery-half text-amber-400 text-xs"></i>
-                <span id="battery-level" class="text-xs font-bold text-slate-300">--%</span>
-            </div>
-            <button id="btn-history" class="bg-slate-800 hover:bg-slate-700 text-brand-orange px-2.5 py-1 rounded border border-slate-700 text-xs font-bold">
-                <i class="fa-solid fa-folder-open"></i>
-            </button>
+        <div class="flex items-center space-x-2 text-[11px]">
+            <span class="text-slate-300"><i class="fa-solid fa-battery-half text-amber-400 mr-1"></i><span id="batt-lvl">--%</span></span>
+            <button onclick="openHistory()" class="bg-slate-800 text-brand-orange px-2 py-0.5 rounded border border-slate-700 font-bold"><i class="fa-solid fa-folder-open"></i></button>
         </div>
     </header>
 
-    <!-- BIG GLOVE-FRIENDLY TAB BAR -->
-    <nav class="grid grid-cols-3 gap-1 p-2 bg-slate-900 border-b border-slate-800 shrink-0">
-        <button onclick="switchTab('averages')" id="tab-btn-averages" class="py-3 px-2 rounded-lg font-display font-bold text-xs sm:text-sm bg-brand-cyan text-slate-950 shadow-lg transition flex items-center justify-center space-x-1.5">
-            <i class="fa-solid fa-gauge-high"></i>
-            <span>AVERAGES</span>
+    <!-- CAR TAB SWITCHER BAR -->
+    <nav class="grid grid-cols-3 gap-1 mb-1.5 shrink-0">
+        <button onclick="setTab('avg')" id="t-avg" class="py-1.5 px-2 rounded font-display font-bold text-xs bg-brand-cyan text-slate-950 transition flex items-center justify-center space-x-1">
+            <i class="fa-solid fa-gauge-high"></i><span>AVERAGES</span>
         </button>
-        <button onclick="switchTab('splits')" id="tab-btn-splits" class="py-3 px-2 rounded-lg font-display font-bold text-xs sm:text-sm bg-slate-800 text-slate-300 hover:bg-slate-700 transition flex items-center justify-center space-x-1.5">
-            <i class="fa-solid fa-stopwatch"></i>
-            <span>SPLITS & TIME</span>
+        <button onclick="setTab('splits')" id="t-splits" class="py-1.5 px-2 rounded font-display font-bold text-xs bg-slate-900 text-slate-300 border border-slate-800 transition flex items-center justify-center space-x-1">
+            <i class="fa-solid fa-stopwatch"></i><span>SPLITS</span>
         </button>
-        <button onclick="switchTab('altitude')" id="tab-btn-altitude" class="py-3 px-2 rounded-lg font-display font-bold text-xs sm:text-sm bg-slate-800 text-slate-300 hover:bg-slate-700 transition flex items-center justify-center space-x-1.5">
-            <i class="fa-solid fa-mountain"></i>
-            <span>ALTITUDE</span>
+        <button onclick="setTab('alt')" id="t-alt" class="py-1.5 px-2 rounded font-display font-bold text-xs bg-slate-900 text-slate-300 border border-slate-800 transition flex items-center justify-center space-x-1">
+            <i class="fa-solid fa-mountain"></i><span>ALTITUDE</span>
         </button>
     </nav>
 
-    <!-- MAIN TAB CONTENT CONTAINER -->
-    <main class="flex-1 p-2 overflow-hidden relative flex flex-col bg-slate-950">
+    <!-- TAB CONTENT AREA (FIXED HEIGHT FOR CAR SCREEN) -->
+    <main class="flex-1 relative flex flex-col overflow-hidden bg-slate-900/50 border border-slate-800 rounded-lg p-2 mb-1.5">
         
-        <!-- TAB 1: AVERAGES & MAX SPEED -->
-        <section id="tab-averages" class="flex-1 flex flex-col space-y-2 h-full">
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex-1 flex flex-col justify-around box-glow">
-                <div class="flex justify-between items-center text-xs text-slate-400 font-bold uppercase tracking-wider">
-                    <span><i class="fa-solid fa-gauge-high text-brand-cyan mr-2"></i> Speed Metrics</span>
-                    <span class="text-slate-300 text-sm">MAX: <strong id="val-max-speed" class="text-brand-orange text-base">0.0</strong> km/h</span>
+        <!-- TAB 1: AVERAGES -->
+        <section id="pane-avg" class="flex-1 flex flex-col justify-between">
+            <div class="flex justify-between items-center text-[11px] text-slate-400 uppercase font-bold px-1">
+                <span><i class="fa-solid fa-gauge text-brand-cyan mr-1"></i> Speed & Averages</span>
+                <span>MAX: <strong id="val-max" class="text-brand-orange text-xs">0.0</strong> km/h</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 my-auto">
+                <div class="bg-slate-950 p-2.5 rounded border border-slate-800 text-center">
+                    <div class="text-[9px] text-slate-400 uppercase">Moving Avg</div>
+                    <div class="text-3xl font-display font-extrabold text-brand-cyan glow-cyan my-0.5"><span id="val-mov-avg">0.0</span></div>
+                    <span class="text-[9px] text-slate-500">km/h</span>
                 </div>
-
-                <div class="grid grid-cols-2 gap-3 my-2">
-                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center flex flex-col justify-center">
-                        <div class="text-xs text-slate-400 uppercase font-bold mb-2">Moving Average</div>
-                        <div class="text-4xl sm:text-5xl font-display font-extrabold text-brand-cyan glow-cyan"><span id="val-moving-avg">0.0</span></div>
-                        <span class="text-xs text-slate-500 mt-1">km/h</span>
-                    </div>
-                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center flex flex-col justify-center">
-                        <div class="text-xs text-slate-400 uppercase font-bold mb-2">Overall Average</div>
-                        <div class="text-4xl sm:text-5xl font-display font-extrabold text-slate-100"><span id="val-overall-avg">0.0</span></div>
-                        <span class="text-xs text-slate-500 mt-1">km/h</span>
-                    </div>
+                <div class="bg-slate-950 p-2.5 rounded border border-slate-800 text-center">
+                    <div class="text-[9px] text-slate-400 uppercase">Overall Avg</div>
+                    <div class="text-3xl font-display font-extrabold text-slate-100 my-0.5"><span id="val-ovr-avg">0.0</span></div>
+                    <span class="text-[9px] text-slate-500">km/h</span>
                 </div>
-
-                <div class="grid grid-cols-2 gap-3 pt-2">
-                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 text-center">
-                        <div class="text-[11px] text-slate-400 uppercase font-bold">Total Distance</div>
-                        <div class="text-xl font-bold text-slate-100 mt-1"><span id="val-total-dist">0.00</span> <span class="text-xs text-slate-500">km</span></div>
-                    </div>
-                    <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 text-center">
-                        <div class="text-[11px] text-slate-400 uppercase font-bold">Moving Time</div>
-                        <div id="val-moving-time" class="text-xl font-bold text-brand-green mt-1">00:00:00</div>
-                    </div>
-                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-center text-[11px]">
+                <div class="bg-slate-950 py-1.5 px-2 rounded border border-slate-800">Dist: <strong id="val-dist" class="text-slate-200">0.00</strong> km</div>
+                <div class="bg-slate-950 py-1.5 px-2 rounded border border-slate-800">Time: <strong id="val-time" class="text-brand-green">00:00:00</strong></div>
             </div>
         </section>
 
-        <!-- TAB 2: ROLLING SPLITS & TIME -->
-        <section id="tab-splits" class="flex-1 flex flex-col space-y-2 h-full hidden">
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex-1 flex flex-col justify-between">
-                <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">
-                    <i class="fa-solid fa-stopwatch text-brand-orange mr-2"></i> Rolling Interval Paces
+        <!-- TAB 2: SPLITS -->
+        <section id="pane-splits" class="flex-1 flex flex-col justify-between hidden">
+            <div class="text-[11px] text-slate-400 uppercase font-bold px-1"><i class="fa-solid fa-stopwatch text-brand-orange mr-1"></i> Rolling Split Paces</div>
+            <div class="grid grid-cols-3 gap-2 my-auto">
+                <div class="bg-slate-950 p-2 rounded border border-slate-800 text-center relative overflow-hidden">
+                    <div class="absolute top-0 left-0 h-1 bg-slate-800 w-full"><div id="bar-1km" class="h-full bg-brand-cyan w-0"></div></div>
+                    <div class="text-[10px] text-slate-400 mt-1 font-bold">1 KM</div>
+                    <div id="pace-1" class="text-xl font-display font-bold text-brand-cyan my-1">--:--</div>
                 </div>
-
-                <div class="grid grid-cols-3 gap-3 my-auto">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-col justify-between text-center relative overflow-hidden">
-                        <div class="w-full bg-slate-800 h-1.5 absolute top-0 left-0">
-                            <div id="bar-1km-progress" class="bg-brand-cyan h-full w-0 transition-all"></div>
-                        </div>
-                        <span class="text-xs font-bold text-slate-400 mt-1">LAST 1 KM</span>
-                        <div id="pace-1km-value" class="text-2xl sm:text-3xl font-bold font-display text-brand-cyan my-2">--:--</div>
-                        <span class="text-[11px] text-slate-500">min/km</span>
-                    </div>
-
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-col justify-between text-center relative overflow-hidden">
-                        <div class="w-full bg-slate-800 h-1.5 absolute top-0 left-0">
-                            <div id="bar-5km-progress" class="bg-brand-orange h-full w-0 transition-all"></div>
-                        </div>
-                        <span class="text-xs font-bold text-slate-400 mt-1">LAST 5 KM</span>
-                        <div id="pace-5km-value" class="text-2xl sm:text-3xl font-bold font-display text-brand-orange my-2">--:--</div>
-                        <span class="text-[11px] text-slate-500">min/km</span>
-                    </div>
-
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-col justify-between text-center relative overflow-hidden">
-                        <div class="w-full bg-slate-800 h-1.5 absolute top-0 left-0">
-                            <div id="bar-10km-progress" class="bg-brand-green h-full w-0 transition-all"></div>
-                        </div>
-                        <span class="text-xs font-bold text-slate-400 mt-1">LAST 10 KM</span>
-                        <div id="pace-10km-value" class="text-2xl sm:text-3xl font-bold font-display text-brand-green my-2">--:--</div>
-                        <span class="text-[11px] text-slate-500">min/km</span>
-                    </div>
+                <div class="bg-slate-950 p-2 rounded border border-slate-800 text-center relative overflow-hidden">
+                    <div class="absolute top-0 left-0 h-1 bg-slate-800 w-full"><div id="bar-5km" class="h-full bg-brand-orange w-0"></div></div>
+                    <div class="text-[10px] text-slate-400 mt-1 font-bold">5 KM</div>
+                    <div id="pace-5" class="text-xl font-display font-bold text-brand-orange my-1">--:--</div>
                 </div>
-
-                <div class="grid grid-cols-2 gap-3 pt-2">
-                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
-                        <div class="text-[11px] text-slate-400 uppercase font-bold">Moving Time</div>
-                        <div id="val-moving-time-2" class="text-lg font-bold text-brand-green mt-0.5">00:00:00</div>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
-                        <div class="text-[11px] text-slate-400 uppercase font-bold">Stationary Time</div>
-                        <div id="val-idle-time" class="text-lg font-bold text-amber-400 mt-0.5">00:00:00</div>
-                    </div>
+                <div class="bg-slate-950 p-2 rounded border border-slate-800 text-center relative overflow-hidden">
+                    <div class="absolute top-0 left-0 h-1 bg-slate-800 w-full"><div id="bar-10km" class="h-full bg-brand-green w-0"></div></div>
+                    <div class="text-[10px] text-slate-400 mt-1 font-bold">10 KM</div>
+                    <div id="pace-10" class="text-xl font-display font-bold text-brand-green my-1">--:--</div>
                 </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-center text-[11px]">
+                <div class="bg-slate-950 py-1.5 rounded border border-slate-800">Moving: <span id="val-mov-time-2" class="text-brand-green font-bold">00:00:00</span></div>
+                <div class="bg-slate-950 py-1.5 rounded border border-slate-800">Idle: <span id="val-idle-time" class="text-amber-400 font-bold">00:00:00</span></div>
             </div>
         </section>
 
-        <!-- TAB 3: ALTITUDE PROFILE -->
-        <section id="tab-altitude" class="flex-1 flex flex-col space-y-2 h-full hidden">
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex-1 flex flex-col justify-between box-glow-orange">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-xs font-bold text-slate-300 uppercase"><i class="fa-solid fa-mountain text-brand-orange mr-2"></i> Elevation Profile</span>
-                    <div class="flex space-x-3 text-xs">
-                        <div>CURR: <span id="val-alt-curr" class="font-bold text-brand-orange text-sm">0</span>m</div>
-                        <div>GAIN: <span id="val-alt-gain" class="font-bold text-brand-green text-sm">0</span>m</div>
-                    </div>
-                </div>
-
-                <div class="relative flex-1 w-full bg-slate-950 border border-slate-800 rounded-lg overflow-hidden my-1 min-h-[140px]">
-                    <canvas id="altitude-canvas" class="w-full h-full block"></canvas>
-                    <div id="graph-empty-notice" class="absolute inset-0 flex items-center justify-center text-slate-500 text-xs font-mono">
-                        Awaiting elevation stream...
-                    </div>
-                </div>
-
-                <div class="flex justify-between items-center text-xs text-slate-400">
-                    <span id="graph-samples-count">Samples: 0</span>
-                    <div class="space-x-3">
-                        <span>MIN: <strong id="val-alt-min" class="text-slate-200">0</strong>m</span>
-                        <span>MAX: <strong id="val-alt-max" class="text-slate-200">0</strong>m</span>
-                    </div>
-                </div>
+        <!-- TAB 3: ALTITUDE -->
+        <section id="pane-alt" class="flex-1 flex flex-col justify-between hidden">
+            <div class="flex justify-between items-center text-[11px] text-slate-400 uppercase font-bold px-1">
+                <span><i class="fa-solid fa-mountain text-brand-orange mr-1"></i> Elevation Profile</span>
+                <span>CURR: <strong id="val-alt" class="text-brand-orange text-xs">0</strong>m | GAIN: <strong id="val-gain" class="text-brand-green text-xs">0</strong>m</span>
+            </div>
+            <div class="relative flex-1 w-full bg-slate-950 border border-slate-800 rounded overflow-hidden my-1">
+                <canvas id="alt-canvas" class="w-full h-full block"></canvas>
+                <div id="alt-empty" class="absolute inset-0 flex items-center justify-center text-slate-600 text-[10px]">Awaiting elevation data...</div>
+            </div>
+            <div class="flex justify-between text-[10px] text-slate-400 px-1">
+                <span id="alt-samples">Samples: 0</span>
+                <span>MIN: <strong id="val-min-alt" class="text-slate-200">0</strong>m | MAX: <strong id="val-max-alt" class="text-slate-200">0</strong>m</span>
             </div>
         </section>
 
-        <!-- BOTTOM ACTION BAR -->
-        <div class="bg-slate-900 border-t border-slate-800 p-2.5 flex gap-2 shrink-0 mt-2">
-            <button onclick="saveAndStartNewTrip()" class="flex-1 bg-gradient-to-r from-brand-orange to-amber-600 hover:from-orange-500 text-slate-950 font-display font-extrabold text-xs sm:text-sm py-2.5 px-3 rounded-lg shadow-lg flex items-center justify-center space-x-2">
-                <i class="fa-solid fa-floppy-disk text-base"></i>
-                <span>SAVE & NEW TRIP</span>
-            </button>
-            <button onclick="togglePause()" id="btn-pause" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-lg border border-slate-700 font-bold text-xs flex items-center space-x-1.5">
-                <i id="pause-icon" class="fa-solid fa-pause text-amber-400"></i>
-                <span id="pause-text">PAUSE</span>
-            </button>
-            <button onclick="exportCurrentTripGPX()" class="bg-slate-800 hover:bg-slate-700 text-brand-cyan px-4 py-2.5 rounded-lg border border-slate-700 font-bold text-xs flex items-center space-x-1.5">
-                <i class="fa-solid fa-file-export"></i>
-                <span>GPX</span>
-            </button>
-        </div>
     </main>
 
+    <!-- COMPACT CAR ACTION BAR -->
+    <footer class="grid grid-cols-3 gap-1.5 shrink-0">
+        <button onclick="saveTrip()" class="bg-gradient-to-r from-brand-orange to-amber-600 text-slate-950 font-display font-extrabold text-xs py-2 px-1 rounded shadow flex items-center justify-center space-x-1">
+            <i class="fa-solid fa-floppy-disk"></i><span>SAVE TRIP</span>
+        </button>
+        <button onclick="togglePause()" id="btn-pause" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs py-2 px-1 rounded flex items-center justify-center space-x-1">
+            <i id="pause-ico" class="fa-solid fa-pause text-amber-400"></i><span id="pause-lbl">PAUSE</span>
+        </button>
+        <button onclick="exportGPX()" class="bg-slate-800 hover:bg-slate-700 text-brand-cyan border border-slate-700 font-bold text-xs py-2 px-1 rounded flex items-center justify-center space-x-1">
+            <i class="fa-solid fa-file-export"></i><span>GPX</span>
+        </button>
+    </footer>
+
     <!-- HISTORY MODAL -->
-    <div id="modal-history" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
-                <h3 class="font-display font-bold text-base text-brand-cyan">SAVED TRIP ARCHIVE</h3>
-                <button onclick="document.getElementById('modal-history').classList.add('hidden')" class="text-slate-400 hover:text-white p-2">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+    <div id="modal-hist" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-3 border-b border-slate-800 flex justify-between items-center bg-slate-950 text-xs">
+                <h3 class="font-display font-bold text-brand-cyan">SAVED TRIPS</h3>
+                <button onclick="document.getElementById('modal-hist').classList.add('hidden')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
-            <div id="history-list" class="p-4 overflow-y-auto flex-1 space-y-3 text-xs"></div>
-            <div class="p-3 border-t border-slate-800 bg-slate-950 flex justify-between items-center">
-                <button onclick="clearAllHistory()" class="text-xs text-red-400 font-bold">CLEAR HISTORY</button>
-                <span class="text-[10px] text-slate-500">Stored Locally</span>
+            <div id="hist-list" class="p-3 overflow-y-auto flex-1 space-y-2 text-xs"></div>
+            <div class="p-2 border-t border-slate-800 bg-slate-950 flex justify-between items-center text-[10px]">
+                <button onclick="clearHist()" class="text-red-400 font-bold">CLEAR ALL</button>
+                <span class="text-slate-500">Local Storage</span>
             </div>
         </div>
     </div>
 
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-brand-cyan text-slate-950 font-bold px-4 py-2.5 rounded-lg shadow-xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-2">
-        <i class="fa-solid fa-check-circle"></i>
-        <span id="toast-msg">Action successful</span>
-    </div>
+    <!-- TOAST -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-brand-cyan text-slate-950 font-bold text-xs px-3 py-1.5 rounded shadow-lg z-50 transform translate-y-16 opacity-0 transition-all duration-300">Notification</div>
 
     <script>
         const state = {
-            isPaused: false, gpsLocked: false, lastPosition: null,
-            totalDistanceKm: 0, movingTimeSec: 0, idleTimeSec: 0,
-            maxSpeedKmh: 0, currentSpeedKmh: 0, currentHeading: 0,
-            currentAltitude: 0, minAltitude: null, maxAltitude: null,
-            altitudeGain: 0, altitudeHistory: [], trackPoints: [], lastAutoSave: Date.now()
+            isPaused: false, dist: 0, movTime: 0, idleTime: 0, maxSpd: 0, curSpd: 0,
+            currAlt: 0, minAlt: null, maxAlt: null, altGain: 0, altHist: [], trackPts: [], lastPos: null
         };
 
-        const ui = {
-            gpsDot: document.getElementById('gps-status-dot'),
-            gpsText: document.getElementById('gps-status-text'),
-            gpsAccuracy: document.getElementById('gps-accuracy'),
-            headerHeading: document.getElementById('header-heading'),
-            batteryLevel: document.getElementById('battery-level'),
-            batteryIcon: document.getElementById('battery-icon'),
-            maxSpeed: document.getElementById('val-max-speed'),
-            movingAvg: document.getElementById('val-moving-avg'),
-            overallAvg: document.getElementById('val-overall-avg'),
-            totalDist: document.getElementById('val-total-dist'),
-            movingTime: document.getElementById('val-moving-time'),
-            movingTime2: document.getElementById('val-moving-time-2'),
-            idleTime: document.getElementById('val-idle-time'),
-            pace1kmVal: document.getElementById('pace-1km-value'), bar1km: document.getElementById('bar-1km-progress'),
-            pace5kmVal: document.getElementById('pace-5km-value'), bar5km: document.getElementById('bar-5km-progress'),
-            pace10kmVal: document.getElementById('pace-10km-value'), bar10km: document.getElementById('bar-10km-progress'),
-            altCurr: document.getElementById('val-alt-curr'), altMin: document.getElementById('val-alt-min'),
-            altMax: document.getElementById('val-alt-max'), altGain: document.getElementById('val-alt-gain'),
-            samplesCount: document.getElementById('graph-samples-count'),
-            canvas: document.getElementById('altitude-canvas'), emptyNotice: document.getElementById('graph-empty-notice'),
-            pauseIcon: document.getElementById('pause-icon'), pauseText: document.getElementById('pause-text'),
-            historyList: document.getElementById('history-list'), toast: document.getElementById('toast'), toastMsg: document.getElementById('toast-msg')
-        };
-
-        const ctx = ui.canvas.getContext('2d');
-
-        function switchTab(tabName) {
-            ['averages', 'splits', 'altitude'].forEach(t => {
-                document.getElementById(`tab-${t}`).classList.add('hidden');
-                const btn = document.getElementById(`tab-btn-${t}`);
-                btn.className = "py-3 px-2 rounded-lg font-display font-bold text-xs sm:text-sm bg-slate-800 text-slate-300 hover:bg-slate-700 transition flex items-center justify-center space-x-1.5";
+        function setTab(name) {
+            ['avg', 'splits', 'alt'].forEach(t => {
+                document.getElementById(`pane-${t}`).classList.add('hidden');
+                document.getElementById(`t-${t}`).className = "py-1.5 px-2 rounded font-display font-bold text-xs bg-slate-900 text-slate-300 border border-slate-800 transition flex items-center justify-center space-x-1";
             });
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
-            activeBtn.className = "py-3 px-2 rounded-lg font-display font-bold text-xs sm:text-sm bg-brand-cyan text-slate-950 shadow-lg transition flex items-center justify-center space-x-1.5";
-            if (tabName === 'altitude') resizeCanvas();
+            document.getElementById(`pane-${name}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`t-${name}`);
+            activeBtn.className = "py-1.5 px-2 rounded font-display font-bold text-xs bg-brand-cyan text-slate-950 transition flex items-center justify-center space-x-1";
+            if(name === 'alt') resizeCanvas();
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             initBattery();
-            loadActiveSession();
             initGPS();
-            setInterval(masterTelemetryLoop, 1000);
-            document.getElementById('btn-history').addEventListener('click', () => { renderHistoryList(); document.getElementById('modal-history').classList.remove('hidden'); });
+            setInterval(loop, 1000);
             window.addEventListener('resize', resizeCanvas);
         });
 
         function initBattery() {
             if ('getBattery' in navigator) {
-                navigator.getBattery().then(battery => {
-                    function update() {
-                        ui.batteryLevel.textContent = `${Math.round(battery.level * 100)}%`;
-                    }
-                    update();
-                    battery.addEventListener('levelchange', update);
-                }).catch(() => { ui.batteryLevel.textContent = "N/A"; });
-            } else { ui.batteryLevel.textContent = "N/A"; }
+                navigator.getBattery().then(b => {
+                    document.getElementById('batt-lvl').textContent = Math.round(b.level * 100) + '%';
+                    b.addEventListener('levelchange', () => document.getElementById('batt-lvl').textContent = Math.round(b.level * 100) + '%');
+                });
+            }
         }
 
         function initGPS() {
-            if (!("geolocation" in navigator)) { ui.gpsText.textContent = "NO GPS"; return; }
-            navigator.geolocation.watchPosition(onGPSPosition, onGPSError, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-        }
+            if (!("geolocation" in navigator)) return;
+            navigator.geolocation.watchPosition(pos => {
+                if(state.isPaused) return;
+                const c = pos.coords;
+                document.getElementById('gps-status-dot').className = "w-2.5 h-2.5 rounded-full bg-brand-green shadow-[0_0_8px_#00ff66]";
+                document.getElementById('gps-text').textContent = "LOCKED";
+                document.getElementById('gps-acc').textContent = Math.round(c.accuracy);
+                if(c.heading) document.getElementById('header-hdg').textContent = Math.round(c.heading) + '°';
+                
+                state.curSpd = c.speed ? c.speed * 3.6 : 0;
+                if(state.curSpd > state.maxSpd) state.maxSpd = state.curSpd;
 
-        function getHeadingCardinal(deg) {
-            if (deg === null || isNaN(deg)) return "---";
-            const dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
-            return dirs[Math.floor((deg / 22.5) + 0.5) % 16];
-        }
-
-        function onGPSPosition(pos) {
-            if (state.isPaused) return;
-            const c = pos.coords;
-            state.gpsLocked = true;
-            ui.gpsDot.className = "w-3 h-3 rounded-full bg-brand-green shadow-[0_0_8px_#00ff66]";
-            ui.gpsText.textContent = "GPS LOCKED";
-            ui.gpsAccuracy.textContent = Math.round(c.accuracy);
-
-            if (c.heading !== null && !isNaN(c.heading)) {
-                state.currentHeading = c.heading;
-                ui.headerHeading.textContent = `${Math.round(c.heading)}° (${getHeadingCardinal(c.heading)})`;
-            }
-
-            const rawSpeed = c.speed !== null && !isNaN(c.speed) ? c.speed * 3.6 : 0;
-            state.currentSpeedKmh = rawSpeed > 0.8 ? rawSpeed : 0;
-            if (state.currentSpeedKmh > state.maxSpeedKmh) state.maxSpeedKmh = state.currentSpeedKmh;
-
-            if (c.altitude !== null && !isNaN(c.altitude)) {
-                const alt = Math.round(c.altitude);
-                if (state.minAltitude === null || alt < state.minAltitude) state.minAltitude = alt;
-                if (state.maxAltitude === null || alt > state.maxAltitude) state.maxAltitude = alt;
-                if (state.currentAltitude !== 0 && alt > state.currentAltitude) {
-                    const diff = alt - state.currentAltitude;
-                    if (diff > 1 && diff < 50) state.altitudeGain += diff;
+                if(c.altitude) {
+                    const alt = Math.round(c.altitude);
+                    if(state.minAlt === null || alt < state.minAlt) state.minAlt = alt;
+                    if(state.maxAlt === null || alt > state.maxAlt) state.maxAlt = alt;
+                    if(state.currAlt && alt > state.currAlt) {
+                        const diff = alt - state.currAlt;
+                        if(diff > 0 && diff < 40) state.altGain += diff;
+                    }
+                    state.currAlt = alt;
                 }
-                state.currentAltitude = alt;
-            }
 
-            if (state.lastPosition) {
-                const distDelta = calculateHaversine(state.lastPosition.lat, state.lastPosition.lon, c.latitude, c.longitude);
-                if (distDelta > 0.001 && distDelta < 0.5) state.totalDistanceKm += distDelta;
-            }
-            state.lastPosition = { lat: c.latitude, lon: c.longitude };
-            state.trackPoints.push({ lat: c.latitude, lon: c.longitude, ele: state.currentAltitude, speed: state.currentSpeedKmh, time: pos.timestamp || Date.now() });
+                if(state.lastPos) {
+                    const d = haversine(state.lastPos.lat, state.lastPos.lon, c.latitude, c.longitude);
+                    if(d > 0.001 && d < 0.5) state.dist += d;
+                }
+                state.lastPos = {lat: c.latitude, lon: c.longitude};
+                state.trackPts.push({lat: c.latitude, lon: c.longitude, ele: state.currAlt, time: pos.timestamp || Date.now()});
+            }, () => {
+                document.getElementById('gps-status-dot').className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
+                document.getElementById('gps-text').textContent = "SEARCHING";
+            }, {enableHighAccuracy: true, maximumAge: 0});
         }
 
-        function onGPSError() {
-            state.gpsLocked = false;
-            ui.gpsDot.className = "w-3 h-3 rounded-full bg-red-500 animate-pulse";
-            ui.gpsText.textContent = "SEARCHING";
-        }
-
-        function calculateHaversine(lat1, lon1, lat2, lon2) {
+        function haversine(lat1, lon1, lat2, lon2) {
             const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+            const dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        function masterTelemetryLoop() {
-            if (state.isPaused) return;
-            if (state.currentSpeedKmh > 1.5) state.movingTimeSec++; else state.idleTimeSec++;
+        function loop() {
+            if(state.isPaused) return;
+            if(state.curSpd > 1.5) state.movTime++; else state.idleTime++;
+            state.altHist.push({alt: state.currAlt});
+            if(state.altHist.length > 300) state.altHist.shift();
 
-            state.altitudeHistory.push({ time: Date.now(), alt: state.currentAltitude });
-            if (state.altitudeHistory.length > 7200) state.altitudeHistory.shift();
+            // Render UI
+            document.getElementById('val-max').textContent = state.maxSpd.toFixed(1);
+            const movH = state.movTime/3600, totH = (state.movTime+state.idleTime)/3600;
+            document.getElementById('val-mov-avg').textContent = (movH > 0 ? state.dist/movH : 0).toFixed(1);
+            document.getElementById('val-ovr-avg').textContent = (totH > 0 ? state.dist/totH : 0).toFixed(1);
+            document.getElementById('val-dist').textContent = state.dist.toFixed(2);
+            document.getElementById('val-time').textContent = fmtTime(state.movTime);
+            document.getElementById('val-mov-time-2').textContent = fmtTime(state.movTime);
+            document.getElementById('val-idle-time').textContent = fmtTime(state.idleTime);
 
-            renderDashboard();
-            if (!document.getElementById('tab-altitude').classList.contains('hidden')) {
-                renderAltitudeGraph();
+            document.getElementById('val-alt').textContent = state.currAlt;
+            document.getElementById('val-gain').textContent = state.altGain;
+            document.getElementById('val-min-alt').textContent = state.minAlt || 0;
+            document.getElementById('val-max-alt').textContent = state.maxAlt || 0;
+            document.getElementById('alt-samples').textContent = `Samples: ${state.altHist.length}`;
+
+            updateSplit(1, state.dist, state.trackPts, 'pace-1', 'bar-1km');
+            updateSplit(5, state.dist, state.trackPts, 'pace-5', 'bar-5km');
+            updateSplit(10, state.dist, state.trackPts, 'pace-10', 'bar-10km');
+
+            if(!document.getElementById('pane-alt').classList.contains('hidden')) renderGraph();
+        }
+
+        function updateSplit(targetKm, dist, pts, valId, barId) {
+            const valEl = document.getElementById(valId), barEl = document.getElementById(barId);
+            barEl.style.width = `${Math.min(100, (dist / targetKm) * 100)}%`;
+            if(dist < 0.05 || pts.length < 2) { valEl.textContent = "--:--"; return; }
+            let acc = 0, sub = [pts[pts.length-1]];
+            for(let i=pts.length-1; i>0; i--) {
+                acc += haversine(pts[i].lat, pts[i].lon, pts[i-1].lat, pts[i-1].lon);
+                sub.unshift(pts[i-1]);
+                if(acc >= targetKm) break;
             }
-
-            if (Date.now() - state.lastAutoSave > 5000) {
-                localStorage.setItem('adv_active_session', JSON.stringify(state));
-                state.lastAutoSave = Date.now();
-            }
-        }
-
-        function renderDashboard() {
-            ui.maxSpeed.textContent = state.maxSpeedKmh.toFixed(1);
-            const totHrs = (state.movingTimeSec + state.idleTimeSec) / 3600;
-            const movHrs = state.movingTimeSec / 3600;
-
-            ui.movingAvg.textContent = (movHrs > 0 ? (state.totalDistanceKm / movHrs) : 0).toFixed(1);
-            ui.overallAvg.textContent = (totHrs > 0 ? (state.totalDistanceKm / totHrs) : 0).toFixed(1);
-            ui.totalDist.textContent = state.totalDistanceKm.toFixed(2);
-            
-            const durStr = formatDuration(state.movingTimeSec);
-            ui.movingTime.textContent = durStr;
-            ui.movingTime2.textContent = durStr;
-            ui.idleTime.textContent = formatDuration(state.idleTimeSec);
-
-            ui.altCurr.textContent = state.currentAltitude;
-            ui.altMin.textContent = state.minAltitude !== null ? state.minAltitude : 0;
-            ui.altMax.textContent = state.maxAltitude !== null ? state.maxAltitude : 0;
-            ui.altGain.textContent = state.altitudeGain;
-
-            updatePaceSplit(1, state.totalDistanceKm, state.trackPoints, ui.pace1kmVal, ui.bar1km);
-            updatePaceSplit(5, state.totalDistanceKm, state.trackPoints, ui.pace5kmVal, ui.bar5km);
-            updatePaceSplit(10, state.totalDistanceKm, state.trackPoints, ui.pace10kmVal, ui.bar10km);
-        }
-
-        function updatePaceSplit(kmTarget, currentDist, pts, valElem, barElem) {
-            if (currentDist < 0.05 || pts.length < 2) { valElem.textContent = "--:--"; barElem.style.width = "0%"; return; }
-            const targetMeters = kmTarget * 1000;
-            let accMeters = 0, subPts = [pts[pts.length - 1]];
-            for (let i = pts.length - 1; i > 0; i--) {
-                accMeters += calculateHaversine(pts[i].lat, pts[i].lon, pts[i-1].lat, pts[i-1].lon) * 1000;
-                subPts.unshift(pts[i-1]);
-                if (accMeters >= targetMeters) break;
-            }
-            barElem.style.width = `${Math.min(100, (currentDist / kmTarget) * 100)}%`;
-            if (accMeters < targetMeters * 0.85 && currentDist < kmTarget) { valElem.textContent = "--:--"; return; }
-            const timeSec = (subPts[subPts.length - 1].time - subPts[0].time) / 1000;
-            const km = accMeters / 1000;
-            if (timeSec > 5 && km > 0.05) {
-                const spk = timeSec / km;
-                valElem.textContent = `${Math.floor(spk / 60)}:${Math.floor(spk % 60).toString().padStart(2, '0')}`;
-            } else { valElem.textContent = "--:--"; }
-        }
-
-        function formatDuration(sec) {
-            const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
-            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        }
-
-        function resizeCanvas() {
-            ui.canvas.width = ui.canvas.parentElement.clientWidth;
-            ui.canvas.height = ui.canvas.parentElement.clientHeight;
-            renderAltitudeGraph();
-        }
-
-        function renderAltitudeGraph() {
-            const h = state.altitudeHistory;
-            ui.samplesCount.textContent = `Samples: ${h.length}`;
-            if (h.length < 2) { ui.emptyNotice.classList.remove('hidden'); ctx.clearRect(0, 0, ui.canvas.width, ui.canvas.height); return; }
-            ui.emptyNotice.classList.add('hidden');
-            const w = ui.canvas.width, ht = ui.canvas.height;
-            ctx.clearRect(0, 0, w, ht);
-
-            let min = Infinity, max = -Infinity;
-            h.forEach(p => { if (p.alt < min) min = p.alt; if (p.alt > max) max = p.alt; });
-            let range = Math.max(max - min, 10);
-            const pad = 15, drawH = ht - (pad * 2);
-
-            ctx.beginPath(); ctx.lineWidth = 2; ctx.strokeStyle = '#ff6b00';
-            h.forEach((pt, i) => {
-                const x = (i / (h.length - 1)) * w;
-                const y = ht - pad - ((pt.alt - min) / range) * drawH;
-                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-            });
-            ctx.stroke();
-        }
-
-        function togglePause() {
-            state.isPaused = !state.isPaused;
-            ui.pauseIcon.className = state.isPaused ? "fa-solid fa-play text-brand-green" : "fa-solid fa-pause text-amber-400";
-            ui.pauseText.textContent = state.isPaused ? "RESUME" : "PAUSE";
-            showToast(state.isPaused ? "Paused" : "Resumed");
-        }
-
-        function saveAndStartNewTrip() {
-            if (state.trackPoints.length === 0) { showToast("No data to save"); return; }
-            const trip = { id: Date.now(), date: new Date().toLocaleString(), distanceKm: state.totalDistanceKm.toFixed(2), maxSpeedKmh: state.maxSpeedKmh.toFixed(1), altGain: state.altitudeGain, trackPoints: [...state.trackPoints] };
-            let history = JSON.parse(localStorage.getItem('adv_trip_history') || '[]');
-            history.unshift(trip);
-            localStorage.setItem('adv_trip_history', JSON.stringify(history));
-            exportTripGPXRecord(trip);
-            state.totalDistanceKm = 0; state.movingTimeSec = 0; state.idleTimeSec = 0; state.maxSpeedKmh = 0; state.altitudeGain = 0; state.altitudeHistory = []; state.trackPoints = [];
-            showToast("Trip Saved!");
-        }
-
-        function exportCurrentTripGPX() {
-            if (state.trackPoints.length === 0) { showToast("No track points"); return; }
-            exportTripGPXRecord({ id: Date.now(), date: new Date().toISOString(), trackPoints: state.trackPoints });
-        }
-
-        function exportTripGPXRecord(trip) {
-            let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="ADV Mission Control">\n  <trk><trkseg>\n`;
-            trip.trackPoints.forEach(p => { gpx += `    <trkpt lat="${p.lat}" lon="${p.lon}"><ele>${p.ele}</ele></trkpt>\n`; });
-            gpx += `  </trkseg></trk>\n</gpx>`;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([gpx], { type: 'application/gpx+xml' }));
-            a.download = `ADV_Trip_${trip.id}.gpx`;
-            a.click();
-            showToast("GPX Exported");
-        }
-
-        function loadActiveSession() {
-            const saved = localStorage.getItem('adv_active_session');
-            if (saved) { try { Object.assign(state, JSON.parse(saved)); } catch(e) {} }
-        }
-
-        function renderHistoryList() {
-            const history = JSON.parse(localStorage.getItem('adv_trip_history') || '[]');
-            ui.historyList.innerHTML = history.length === 0 ? `<div class="text-center text-slate-500 py-6">No saved trips.</div>` : '';
-            history.forEach(t => {
-                const div = document.createElement('div');
-                div.className = "bg-slate-950 border border-slate-800 rounded p-3 flex justify-between items-center";
-                div.innerHTML = `<div><div class="font-bold text-slate-200">${t.date}</div><div class="text-[10px] text-slate-400 mt-1">Dist: ${t.distanceKm}km | Max: ${t.maxSpeedKmh}km/h</div></div><button onclick="exportTripGPXRecordById(${t.id})" class="bg-slate-800 text-brand-cyan px-3 py-1 rounded font-bold">GPX</button>`;
-                ui.historyList.appendChild(div);
-            });
-        }
-
-        window.exportTripGPXRecordById = function(id) {
-            const t = JSON.parse(localStorage.getItem('adv_trip_history') || '[]').find(x => x.id === id);
-            if (t) exportTripGPXRecord(t);
-        };
-
-        function clearAllHistory() {
-            if (confirm("Clear history?")) { localStorage.removeItem('adv_trip_history'); renderHistoryList(); showToast("Cleared"); }
-        }
-
-        function showToast(msg) {
-            ui.toastMsg.textContent = msg;
-            ui.toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => ui.toast.classList.add('translate-y-20', 'opacity-0'), 3000);
-        }
-    </script>
-</body>
-</html>
+            if(acc < targetKm * 0.8 && dist < targetKm) { valEl.textContent = "--:--"; return; }
+            const sec = (sub[sub.length-1].time - sub[0].time) / 1000, km = acc;
+            if(sec > 5 && km > 0.
